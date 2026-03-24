@@ -18,7 +18,7 @@ SELECT o.officeCode, o.city
 FROM offices o
 LEFT JOIN employees e ON o.officeCode = e.officeCode
 GROUP BY o.officeCode, o.city
-HAVING COUNT(e.employeeNumber) = 0;
+HAVING COUNT(DISTINCT e.employeeNumber) = 0;
 """, conn)
 print("\n--- Offices with zero employees ---")
 print(df_zero_emp)
@@ -80,18 +80,6 @@ print(df_product_sold)
 
 # Part 5: Multiple Joins
 df_total_customers = pd.read_sql("""
-SELECT o.officeCode, o.city,
-       COUNT(c.customerNumber) AS n_customers
-FROM offices o
-LEFT JOIN employees e ON o.officeCode = e.officeCode
-LEFT JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
-GROUP BY o.officeCode, o.city
-ORDER BY o.officeCode;
-""", conn)
-print("\n--- Total customers per office ---")
-print(df_total_customers)
-
-df_customers_per_product = pd.read_sql("""
 SELECT p.productName, p.productCode,
        COUNT(DISTINCT o.customerNumber) AS numpurchasers
 FROM products p
@@ -101,7 +89,19 @@ GROUP BY p.productName, p.productCode
 ORDER BY numpurchasers DESC;
 """, conn)
 print("\n--- Customers per product ---")
-print(df_customers_per_product)
+print(df_total_customers)
+
+df_office_customers = pd.read_sql("""
+SELECT o.officeCode, o.city,
+       COUNT(DISTINCT c.customerNumber) AS n_customers
+FROM offices o
+LEFT JOIN employees e ON o.officeCode = e.officeCode
+LEFT JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
+GROUP BY o.officeCode, o.city
+ORDER BY o.officeCode;
+""", conn)
+print("\n--- Total customers per office ---")
+print(df_office_customers)
 
 # Part 6: Subquery
 df_under_20 = pd.read_sql("""
