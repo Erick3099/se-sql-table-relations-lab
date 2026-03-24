@@ -3,7 +3,6 @@ import pandas as pd
 
 conn = sqlite3.connect('data.sqlite')
 
-# Part 1: Join and Filter
 df_boston = pd.read_sql("""
 SELECT firstName, lastName, jobTitle
 FROM employees e
@@ -16,10 +15,9 @@ SELECT o.officeCode, o.city
 FROM offices o
 LEFT JOIN employees e ON o.officeCode = e.officeCode
 GROUP BY o.officeCode, o.city
-HAVING COUNT(e.employeeNumber) = 0;
+HAVING COUNT(DISTINCT e.employeeNumber) = 0;
 """, conn)
 
-# Part 2: Type of Join
 df_employee = pd.read_sql("""
 SELECT e.firstName, e.lastName, o.city, o.state
 FROM employees e
@@ -35,7 +33,6 @@ WHERE o.orderNumber IS NULL
 ORDER BY c.contactLastName;
 """, conn)
 
-# Part 3: Built-In Function
 df_payment = pd.read_sql("""
 SELECT c.contactFirstName, c.contactLastName, p.amount, p.paymentDate
 FROM customers c
@@ -43,7 +40,6 @@ JOIN payments p ON c.customerNumber = p.customerNumber
 ORDER BY CAST(p.amount AS REAL) DESC;
 """, conn)
 
-# Part 4: Joining and Grouping
 df_credit = pd.read_sql("""
 SELECT e.employeeNumber, e.firstName, e.lastName,
        COUNT(c.customerNumber) AS numCustomers
@@ -64,10 +60,9 @@ GROUP BY p.productName
 ORDER BY totalunits DESC;
 """, conn)
 
-# Part 5: Multiple Joins
 df_total_customers = pd.read_sql("""
 SELECT o.officeCode, o.city,
-       COUNT(c.customerNumber) AS n_customers
+       COUNT(DISTINCT c.customerNumber) AS n_customers
 FROM offices o
 LEFT JOIN employees e ON o.officeCode = e.officeCode
 LEFT JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
@@ -84,7 +79,6 @@ GROUP BY p.productName, p.productCode
 ORDER BY numpurchasers DESC;
 """, conn)
 
-# Part 6: Subquery
 df_under_20 = pd.read_sql("""
 SELECT DISTINCT e.employeeNumber, e.firstName, e.lastName, o.city, o.officeCode
 FROM employees e
@@ -97,8 +91,7 @@ WHERE od.productCode IN (
     FROM orderdetails od2
     JOIN orders o2 ON od2.orderNumber = o2.orderNumber
     GROUP BY od2.productCode
-    HAVING COUNT(DISTINCT o2.customerNumber) < 20
+    HAVING COUNT(DISTINCT o2.customerNumber) <= 19
 );
 """, conn)
-
 conn.close()
